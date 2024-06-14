@@ -6,7 +6,26 @@
             <div class="col-md-12">
                 <div class="card">
                     <div class="card-body">
-                        <a href="{{ route('kategori.create') }}" class="btn btn-md btn-success mb-3">TAMBAH KATEGORI</a>
+                        <!-- tambah search -->
+                    <div class="row mb-3">
+                        <div class="col-md-8">
+                            <a href="{{ route('kategori.create') }}" class="btn btn-md btn-success">TAMBAH KATEGORI</a>
+                        </div>
+                        <div class="col-md-4">
+                            <form action="{{ route('kategori.index') }}" method="GET">
+                                <div class="input-group">
+                                    <input type="text" name="search" class="form-control" placeholder="Cari kategori..." value="{{ request()->input('search') }}">
+                                    <div class="input-group-append">
+                                        <button class="btn btn-secondary" type="submit"><i class="fa fa-search"></i></button>
+                                    </div>
+                                    @if(request()->filled('search'))
+                                        <div class="input-group-append">
+                                            <a href="{{ route('kategori.index') }}" class="btn btn-secondary"><i class="fa fa-times"></i></a>
+                                        </div>
+                                    @endif
+                                </div>
+                            </form>
+                        </div>
                         @if(session('success'))
                         <div class="alert alert-success mt-3">
                             {{ session('success') }}
@@ -35,7 +54,7 @@
                     <tbody>
                         @forelse ($rsetkategori as $rk)
                             <tr>
-                                <td>{{ $rk->id }}</td>
+                                <td>{{ ($rsetkategori->currentPage() -1) * $rsetkategori->perPage() + $loop->index + 1 }}</td>
                                 <td>{{ $rk->deskripsi  }}</td>
                                 <td>{{ $rk->kategori  }}</td>
                                 <td>{{ $rk->ketKategori  }}</td>

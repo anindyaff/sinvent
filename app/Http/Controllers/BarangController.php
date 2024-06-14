@@ -20,14 +20,23 @@ class BarangController extends Controller
     
     public function index(Request $request)
     {
-        /* tanpa pagination
-        $Barang = Barang::all();        
-        return view('view_barang.index01',compact('Barang'));
-        */
-
-        /* ada pagination */
-        $rsetBarang = Barang::latest()->paginate(10);        
-        return view('v_barang.index',compact('rsetBarang'));
+        $search = $request->input('search');
+    
+        $rsetBarang = Barang::with('kategori')
+            ->when($search, function ($query, $search) {
+                return $query->where('merk', 'like', '%' . $search . '%')
+                    ->orWhere('seri', 'like', '%' . $search . '%')
+                    ->orWhereHas('kategori', function ($query) use ($search) {
+                        $query->where('deskripsi', 'like', '%' . $search . '%');
+                    });
+            })
+            ->latest()
+            ->paginate(10);
+    
+        $rsetBarang->appends(['search' => $search]);
+    
+        return view('v_barang.index', compact('rsetBarang'))
+            ->with('i', (request()->input('page', 1) - 1) * 10);
     }
 
     /**

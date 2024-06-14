@@ -15,7 +15,27 @@
             <div class="col-md-12">
                 <div class="card">
                     <div class="card-body">
-                        <a href="{{ route('barangmasuk.create') }}" class="btn btn-md btn-success">TAMBAH BARANG MASUK</a>
+                        <!-- tambah create -->
+                        <div class="row mb-3">
+                        <div class="col-md-7">
+                            <a href="{{ route('barangmasuk.create') }}" class="btn btn-md btn-success">TAMBAH BARANG MASUK</a>
+                        </div>
+                        <div class="col-md-5">
+                            <form action="{{ route('barangmasuk.index') }}" method="GET">
+                                <div class="input-group">
+                                    <input type="text" name="search" class="form-control" placeholder="Cari barang..." value="{{ request()->input('search') }}">
+                                    <input type="date" name="tgl_masuk" class="form-control" value="{{ request()->input('tgl_masuk') }}">
+                                    <div class="input-group-append">
+                                        <button class="btn btn-secondary" type="submit"><i class="fa fa-search"></i></button>
+                                    </div>
+                                    @if(request()->filled('search') || request()->filled('tgl_masuk'))
+                                        <div class="input-group-append">
+                                            <a href="{{ route('barangmasuk.index') }}" class="btn btn-secondary"><i class="fa fa-times"></i></a>
+                                        </div>
+                                    @endif
+                                </div>
+                            </form>
+                        </div>
                         @if(session('success'))
                             <div class="alert alert-success mt-3">
                                 {{ session('success') }}
@@ -48,7 +68,7 @@
                     <tbody>
                         @forelse ($barangmasuk as $bm)
                             <tr>
-                                <td>{{ $bm->id }}</td>
+                                <td>{{ ($barangmasuk->currentPage() -1) * $barangmasuk->perPage() + $loop->index + 1 }}</td>
                                 <td>{{ $bm->tgl_masuk }}</td>
                                 <td>{{ $bm->qty_masuk }}</td>
                                 <td>{{ $bm->barang->stok}}</td>

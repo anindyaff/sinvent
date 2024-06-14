@@ -6,7 +6,26 @@
             <div class="col-md-12">
                 <div class="card">
                     <div class="card-body">
-                        <a href="{{ route('barang.create') }}" class="btn btn-md btn-success mb-3">TAMBAH BARANG</a>
+                        <!-- tambah search -->
+                    <div class="row mb-3">
+                        <div class="col-md-8">
+                            <a href="{{ route('barang.create') }}" class="btn btn-md btn-success">TAMBAH BARANG</a>
+                        </div>
+                        <div class="col-md-4">
+                            <form action="{{ route('barang.index') }}" method="GET">
+                                <div class="input-group">
+                                    <input type="text" name="search" class="form-control" placeholder="Cari barang..." value="{{ request()->input('search') }}">
+                                    <div class="input-group-append">
+                                        <button class="btn btn-secondary" type="submit"><i class="fa fa-search"></i></button>
+                                    </div>
+                                    @if(request()->filled('search'))
+                                        <div class="input-group-append">
+                                            <a href="{{ route('barang.index') }}" class="btn btn-secondary"><i class="fa fa-times"></i></a>
+                                        </div>
+                                        @endif
+                                </div>
+                            </form>
+                        </div>
                     </div>
                 </div>
 
@@ -24,6 +43,7 @@
                 <table class="table table-bordered">
                     <thead>
                         <tr>
+                            <th>ID</th>
                             <th>MERK</th>
                             <th>SERI</th>
                             <th>SPESIFIKASI</th>
@@ -35,6 +55,7 @@
                     <tbody>
                         @forelse ($rsetBarang as $rowbarang)
                             <tr>
+                                <td>{{ ($rsetBarang->currentPage() -1) * $rsetBarang->perPage() + $loop->index + 1 }}</td>
                                 <td>{{ $rowbarang->merk }}</td>
                                 <td>{{ $rowbarang->seri }}</td>
                                 <td>{{ $rowbarang->spesifikasi }}</td>

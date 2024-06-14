@@ -17,23 +17,24 @@ class KategoriController extends Controller
      */
     use ValidatesRequests;
 
-    public function index()
+    public function index(Request $request)
     {
-        $rsetkategori = DB::select('SELECT *, ketKategori(kategori) AS ketKategori FROM kategori');
-        
-        // return $rsetkategori; die();
-        return view('v_kategori.index',compact('rsetkategori'));
+        $query = Kategori::select('id', 'deskripsi', 'kategori',
+        DB::raw('(CASE
+            WHEN kategori = "M" THEN "Modal"
+            WHEN kategori = "A" THEN "Alat"
+            WHEN kategori = "BHP" THEN "Bahan Habis Pakai"
+            ELSE "Bahan Tidak Habis Pakai"
+            END) AS ketKategori'));
 
-        // $rsetKategori = Kategori::select('id','kategori','deskripsi',
-        //     \DB::raw('(CASE
-        //         WHEN deskripsi = "M" THEN "Modal"
-        //         WHEN deskripsi = "A" THEN "Alat"
-        //         WHEN deskripsi = "BHP" THEN "Bahan Habis Pakai"
-        //         ELSE "Bahan Tidak Habis Pakai"
-        //         END) AS ketKategorik'))
-        //     ->paginate(10);
-        //     return view('v_kategori.index', compact('rsetKategori'));
-        //     return DB::table('kategori')->get();
+    // Jika ada parameter pencarian
+    if ($request->has('search') && !empty($request->input('search'))) {
+        $query->where('deskripsi', 'like', '%' . $request->input('search') . '%');
+    }
+
+    $rsetkategori = $query->paginate(10);
+
+    return view('v_kategori.index', compact('rsetkategori'));
     }
 
     /**

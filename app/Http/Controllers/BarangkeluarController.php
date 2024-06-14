@@ -9,12 +9,28 @@ use App\Models\Barang;
 
 class BarangkeluarController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
-        // Mengambil data dari tabel 'barangkeluar' menggunakan Eloquent ORM dengan relasi ke 'barang'
-        $barangkeluar = Barangkeluar::with('barang')->latest()->paginate(10);
-
-        return view('v_barangkeluar.index', compact('barangkeluar'));
+        $search = $request->input('search');
+        $tgl_keluar = $request->input('tgl_keluar');
+    
+        $barangkeluar = BarangKeluar::with('barang')
+            ->when($search, function ($query, $search) {
+                return $query->whereHas('barang', function($q) use ($search) {
+                    $q->where('merk', 'like', '%' . $search . '%')
+                      ->orWhere('seri', 'like', '%' . $search . '%');
+                });
+            })
+            ->when($tgl_keluar, function ($query, $tgl_keluar) {
+                return $query->whereDate('tgl_keluar', $tgl_keluar);
+            })
+            ->latest()
+            ->paginate(10);
+    
+        $barangkeluar->appends(['search' => $search, 'tgl_keluar' => $tgl_keluar]);
+    
+        return view('v_barangkeluar.index', compact('barangkeluar'))
+            ->with('i', (request()->input('page', 1) - 1) * 10);
     }
 
     public function create()

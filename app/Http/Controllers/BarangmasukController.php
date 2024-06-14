@@ -11,12 +11,28 @@ use Illuminate\Support\Facades\Storage;
 
 class BarangmasukController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
-        // Mengambil data dari tabel 'barangmasuk' menggunakan Eloquent ORM dengan relasi ke 'barang'
-        $barangmasuk = Barangmasuk::with('barang')->latest()->paginate(10);
-
-        return view('v_barangmasuk.index', compact('barangmasuk'));
+        $search = $request->input('search');
+        $tgl_masuk = $request->input('tgl_masuk');
+    
+        $barangmasuk = BarangMasuk::with('barang')
+            ->when($search, function ($query, $search) {
+                return $query->whereHas('barang', function($q) use ($search) {
+                    $q->where('merk', 'like', '%' . $search . '%')
+                      ->orWhere('seri', 'like', '%' . $search . '%');
+                });
+            })
+            ->when($tgl_masuk, function ($query, $tgl_masuk) {
+                return $query->whereDate('tgl_masuk', $tgl_masuk);
+            })
+            ->latest()
+            ->paginate(10);
+    
+        $barangmasuk->appends(['search' => $search, 'tgl_masuk' => $tgl_masuk]);
+    
+        return view('v_barangmasuk.index', compact('barangmasuk'))
+            ->with('i', (request()->input('page', 1) - 1) * 10);
     }
 
     public function create()
