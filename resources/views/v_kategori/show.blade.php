@@ -13,8 +13,8 @@
                             </tr>
                         
                             <tr>
-                                <td>Jenis</td>
-                                <td>{{ $rsetkategori->jenis }}</td>
+                                <td>Deskripsi</td>
+                                <td>{{ $rsetkategori->deskripsi }}</td>
                             </tr>
                         </table>
                     </div>
