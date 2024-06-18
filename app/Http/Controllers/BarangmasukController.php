@@ -81,40 +81,37 @@ class BarangmasukController extends Controller
     }
     
     public function update(Request $request, $id)
-    {
-        // Validasi data dari request jika diperlukan
-        $validatedData = $request->validate([
-            'tgl_masuk' => 'required',
-            'qty_masuk' => 'required|numeric|min:0',
-            // Tambahkan validasi lainnya sesuai kebutuhan
-        ]);
+{
+    // Validasi data dari request jika diperlukan
+    $validatedData = $request->validate([
+        'tgl_masuk' => 'required',
+        'qty_masuk' => 'required|numeric|min:1',
+        'barang_id' => 'required|exists:barang,id',
+    ]);
     
-        // Temukan data barang masuk yang akan diupdate
-        $barangMasuk = BarangMasuk::findOrFail($id);
+    // Temukan data barang masuk yang akan diupdate
+    $barangMasuk = Barangmasuk::findOrFail($id);
+    $barang = Barang::findOrFail($request->barang_id);
     
-        // Hitung perbedaan antara stok yang baru dan yang sebelumnya
-        $difference = $request->qty_masuk - $barangMasuk->qty_masuk;
+    // Hitung perbedaan antara stok yang baru dan yang sebelumnya
+    $difference = $request->qty_masuk - $barangMasuk->qty_masuk;
     
-        // Simpan perubahan data barang masuk ke database
-        $barangMasuk->tgl_masuk = $request->tgl_masuk;
-        $barangMasuk->qty_masuk = $request->qty_masuk;
-        $barangMasuk->save();
-    
-        // Update stok barang
-        $barang = Barang::find($request->barang_id);
-    
-        if ($difference > 0) {
-            // Jika perbedaan positif, tambahkan ke stok
-            $barang->stok += $difference;
-        } elseif ($difference < 0) {
-            // Jika perbedaan negatif, kurangi dari stok
-            $barang->stok -= abs($difference);
-        }
-    
-        $barang->save();
-    
-        return redirect()->route('barangmasuk.index')->with('success', 'Barang masuk berhasil diperbarui');
+    // Cek apakah stok cukup jika perbedaan negatif
+    if ($difference < 0 && $barang->stok < abs($difference)) {
+        return redirect()->back()->withErrors(['qty_masuk' => 'Perubahan kuantitas melebihi stok yang tersedia'])->withInput();
     }
+    
+    // Simpan perubahan data barang masuk ke database
+    $barangMasuk->tgl_masuk = $request->tgl_masuk;
+    $barangMasuk->qty_masuk = $request->qty_masuk;
+    $barangMasuk->save();
+    
+    // Update stok barang
+    $barang->stok += $difference;
+    $barang->save();
+    
+    return redirect()->route('barangmasuk.index')->with('success', 'Barang masuk berhasil diperbarui');
+}
     
     
     public function destroy($id)

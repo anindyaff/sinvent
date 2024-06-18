@@ -85,22 +85,31 @@ class BarangkeluarController extends Controller
     
     public function update(Request $request, $id)
     {
-        // Validasi data dari request jika diperlukan
+        // Validasi data dari request
         $validatedData = $request->validate([
             'tgl_keluar' => 'required|after_or_equal:today',
-            'qty_keluar' => 'required|numeric|min:0',
-            // Tambahkan validasi lainnya sesuai kebutuhan
+            'qty_keluar' => 'required|integer|min:1',
+            'barang_id' => 'required|exists:barang,id',
         ]);
     
-        // Simpan perubahan data barang keluar ke database
         $barangkeluar = Barangkeluar::findOrFail($id);
+        $barang = Barang::findOrFail($request->barang_id);
+    
+        // Hitung perbedaan antara kuantitas yang baru dengan yang lama
+        $qty_diff = $request->qty_keluar - $barangkeluar->qty_keluar;
+    
+        // Periksa apakah perubahan kuantitas akan menyebabkan stok negatif
+        if ($qty_diff > $barang->stok) {
+            return redirect()->back()->withErrors(['qty_keluar' => 'Jumlah keluar melebihi stok yang tersedia'])->withInput();
+        }
+    
+        // Update data barang keluar
         $barangkeluar->tgl_keluar = $request->tgl_keluar;
         $barangkeluar->qty_keluar = $request->qty_keluar;
-        // Update kolom lainnya yang perlu diubah
         $barangkeluar->save();
-
-        $barang = Barang::find($request->barang_id);
-        $barang->stok -= $request->qty_keluar;
+    
+        // Update stok barang
+        $barang->stok -= $qty_diff;
         $barang->save();
     
         return redirect()->route('barangkeluar.index')->with('success', 'Barang keluar berhasil diperbarui');
